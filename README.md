@@ -6,6 +6,8 @@ An iOS app that saves the recipe reels you find on Instagram, pulls the recipe o
 
 - **Save from Instagram in one tap.** On a reel, tap **Share → Reel Recipes**. The Share Extension queues the reel, and the app imports it the next time you open it.
 - **Paste a link.** Tap **+** in the app and paste a reel link, plus the caption if you have it.
+- **Import everything you've saved.** Use Instagram's *Download your information* export (Saved → JSON) to bring in every saved post at once.
+- **Recipe detection.** Reels from an import are scored on their caption: ingredient lists, steps, quantities, words like "recipe"/"tarif", and food hashtags. Non-recipes (travel, memes, workouts) are hidden in a "non-recipe reels" filter, and you can correct any mistake with one tap.
 - **Automatic caption fetch.** The app reads the reel's public caption and thumbnail.
 - **Recipe extraction.**
   - Rule-based parser: finds the *Ingredients* and *Method/Steps* sections (in English, Turkish, Spanish, French, German and Italian) and strips bullets, emoji, numbering, hashtags and "follow for more" lines. If a caption has no section headings, it sorts lines by their shape: quantities go to ingredients, cooking verbs and numbered lines go to steps.
@@ -16,6 +18,8 @@ An iOS app that saves the recipe reels you find on Instagram, pulls the recipe o
 - **Edit anything:** title, cuisine, tags, ingredients, steps and personal notes. Paste a new caption and the recipe is extracted again.
 
 ## Running it
+
+**Step-by-step guide for running on your iPhone and what to test: [TESTING.md](TESTING.md).**
 
 Requirements: a Mac with **Xcode 16 or later** (Xcode 26 to enable the Apple Intelligence extractor), and **iOS 17+**.
 

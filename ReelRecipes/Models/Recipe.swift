@@ -9,6 +9,8 @@ enum RecipeStatus: String, Codable {
     /// The caption could not be fetched; the user needs to paste it.
     case needsCaption
     case ready
+    /// Imported from an Instagram export, but the caption doesn't look like a recipe.
+    case notRecipe
 }
 
 @Model
@@ -28,6 +30,10 @@ final class Recipe {
     var totalMinutes: Int?
     var notes: String = ""
     var isFavorite: Bool = false
+    /// Bulk-imported from Instagram's data export (so it may not be a recipe at all).
+    var importedFromExport: Bool = false
+    /// The user's own answer to "is this a recipe?"; nil lets the classifier decide.
+    var isRecipeOverride: Bool?
     var statusRaw: String = RecipeStatus.pending.rawValue
     var createdAt: Date = Date()
 

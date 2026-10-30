@@ -148,3 +148,42 @@ final class InstagramTests: XCTestCase {
         XCTAssertEqual("AT&T".decodingHTMLEntities, "AT&T")
     }
 }
+
+final class RecipeClassifierTests: XCTestCase {
+    func testRecipeCaptionsAreRecipes() {
+        XCTAssertTrue(RecipeClassifier.isLikelyRecipe("""
+        Lemon garlic salmon 🍋
+        Ingredients:
+        2 salmon fillets
+        1 tbsp butter
+        2 cloves garlic
+        Method:
+        1. Season the salmon.
+        2. Pan fry 4 minutes each side.
+        """))
+        XCTAssertTrue(RecipeClassifier.isLikelyRecipe("Comment RECIPE and I'll send you my homemade lasagna recipe! #foodie"))
+        XCTAssertTrue(RecipeClassifier.isLikelyRecipe("Mercimek çorbası tarifi 🍲 #yemektarifleri"))
+    }
+
+    func testNonRecipeCaptionsAreNot() {
+        XCTAssertFalse(RecipeClassifier.isLikelyRecipe("Sunset in Bali never gets old 🌅 #travel #wanderlust"))
+        XCTAssertFalse(RecipeClassifier.isLikelyRecipe("POV: it's Monday again 😂 #memes #relatable"))
+        XCTAssertFalse(RecipeClassifier.isLikelyRecipe("New leg day routine 💪 3 sets of 12 squats #gym #fitness"))
+    }
+}
+
+final class InstagramExportTests: XCTestCase {
+    func testFindsLinksInSavedPostsJSON() {
+        let json = #"""
+        {"saved_saved_media": [
+          {"title": "chef.anna", "string_map_data": {"Saved on": {"href": "https:\/\/www.instagram.com\/reel\/ABC123\/", "timestamp": 1700000000}}},
+          {"title": "travelguy", "string_map_data": {"Saved on": {"href": "https://www.instagram.com/p/XYZ_9/", "timestamp": 1690000000}}},
+          {"title": "chef.anna", "string_map_data": {"Saved on": {"href": "https://www.instagram.com/reel/ABC123/?igsh=1", "timestamp": 1700000000}}}
+        ]}
+        """#
+        XCTAssertEqual(InstagramExport.reelLinks(in: json).map(\.absoluteString), [
+            "https://www.instagram.com/reel/ABC123/",
+            "https://www.instagram.com/reel/XYZ_9/",
+        ])
+    }
+}

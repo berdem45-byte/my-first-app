@@ -9,11 +9,14 @@ struct RecipeListView: View {
     @State private var selectedCuisine: String?
     @State private var selectedTags: Set<String> = []
     @State private var favoritesOnly = false
+    @State private var showNonRecipes = false
     @State private var isAdding = false
+    @State private var isImporting = false
 
     private var filtered: [Recipe] {
         recipes.filter { recipe in
-            (selectedCuisine == nil || recipe.cuisine == selectedCuisine)
+            (recipe.status == .notRecipe) == showNonRecipes
+                && (selectedCuisine == nil || recipe.cuisine == selectedCuisine)
                 && (!favoritesOnly || recipe.isFavorite)
                 && selectedTags.isSubset(of: Set(recipe.tags))
                 && recipe.matches(searchText)
@@ -31,7 +34,19 @@ struct RecipeListView: View {
     }
 
     private var isFiltering: Bool {
-        selectedCuisine != nil || !selectedTags.isEmpty || favoritesOnly
+        selectedCuisine != nil || !selectedTags.isEmpty || favoritesOnly || showNonRecipes
+    }
+
+    private var inProgressCount: Int {
+        recipes.filter { $0.status == .pending || $0.status == .processing }.count
+    }
+
+    private var missingCaptionCount: Int {
+        recipes.filter { $0.status == .needsCaption }.count
+    }
+
+    private var nonRecipeCount: Int {
+        recipes.filter { $0.status == .notRecipe }.count
     }
 
     var body: some View {
@@ -47,17 +62,30 @@ struct RecipeListView: View {
             .navigationDestination(for: Recipe.self) { RecipeDetailView(recipe: $0) }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { filterMenu }
-                ToolbarItem(placement: .primaryAction) {
-                    Button { isAdding = true } label: { Label("Add reel", systemImage: "plus") }
-                }
+                ToolbarItem(placement: .primaryAction) { addMenu }
             }
             .sheet(isPresented: $isAdding) { AddRecipeView() }
+            .sheet(isPresented: $isImporting) { ImportFromInstagramView() }
         }
     }
 
     private var list: some View {
         List {
-            if !tags.isEmpty {
+            if inProgressCount > 0 {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("Checking \(inProgressCount) saved reel\(inProgressCount == 1 ? "" : "s")…")
+                        .font(.subheadline)
+                }
+            }
+
+            if showNonRecipes {
+                Text("These reels didn't look like recipes. Open one and tap **It's a recipe** if we got it wrong.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if !tags.isEmpty && !showNonRecipes {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(tags, id: \.self) { tag in
@@ -95,6 +123,7 @@ struct RecipeListView: View {
     private var filterMenu: some View {
         Menu {
             Toggle(isOn: $favoritesOnly) { Label("Favorites only", systemImage: "heart") }
+            Toggle(isOn: $showNonRecipes) { Label("Show non-recipe reels (\(nonRecipeCount))", systemImage: "eye.slash") }
             Picker("Cuisine", selection: $selectedCuisine) {
                 Text("All cuisines").tag(String?.none)
                 ForEach(cuisines, id: \.self) { cuisine in
@@ -106,6 +135,7 @@ struct RecipeListView: View {
                     selectedCuisine = nil
                     selectedTags = []
                     favoritesOnly = false
+                    showNonRecipes = false
                 }
             }
         } label: {
@@ -113,14 +143,31 @@ struct RecipeListView: View {
         }
     }
 
+    private var addMenu: some View {
+        Menu {
+            Button { isAdding = true } label: { Label("Paste a reel link", systemImage: "link") }
+            Button { isImporting = true } label: { Label("Import saved posts from Instagram", systemImage: "square.and.arrow.down.on.square") }
+            if missingCaptionCount > 0 {
+                Button {
+                    Task { await RecipeImporter.retryMissingCaptions(in: context) }
+                } label: {
+                    Label("Retry \(missingCaptionCount) missing caption\(missingCaptionCount == 1 ? "" : "s")", systemImage: "arrow.clockwise")
+                }
+            }
+        } label: {
+            Label("Add", systemImage: "plus")
+        }
+    }
+
     private var emptyState: some View {
         ContentUnavailableView {
             Label("No recipes yet", systemImage: "fork.knife.circle")
         } description: {
-            Text("In Instagram, tap **Share** on a recipe reel and choose **Reel Recipes**. Or tap **+** to paste a reel link.")
+            Text("In Instagram, tap **Share** on a recipe reel and choose **Reel Recipes**. Or import everything you've saved on Instagram at once.")
         } actions: {
-            Button("Add a reel") { isAdding = true }
+            Button("Import saved posts from Instagram") { isImporting = true }
                 .buttonStyle(.borderedProminent)
+            Button("Paste a reel link") { isAdding = true }
         }
     }
 }
@@ -165,6 +212,10 @@ private struct RecipeRow: View {
             Label("Paste the caption to finish", systemImage: "exclamationmark.circle")
                 .font(.subheadline)
                 .foregroundStyle(.orange)
+        case .notRecipe:
+            Text("Not a recipe")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         case .ready:
             let parts = [recipe.cuisine, recipe.country.map { "\(recipe.countryFlag ?? "") \($0)".trimmed }].compactMap { $0 }
             if !parts.isEmpty {

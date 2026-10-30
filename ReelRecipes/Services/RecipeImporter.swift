@@ -22,10 +22,45 @@ enum RecipeImporter {
         let pending = RecipeStatus.pending.rawValue
         let processing = RecipeStatus.processing.rawValue
         let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate<Recipe> { $0.statusRaw == pending || $0.statusRaw == processing })
-        for recipe in (try? context.fetch(descriptor)) ?? [] {
-            await process(recipe)
+        // Re-fetch until empty so reels added while this runs (e.g. an export import) get picked up.
+        while true {
+            let queue = (try? context.fetch(descriptor)) ?? []
+            if queue.isEmpty { break }
+            for (index, recipe) in queue.enumerated() {
+                await process(recipe)
+                if index % 10 == 9 { try? context.save() }
+                // Be gentle with Instagram when working through a large export.
+                if queue.count > 3 { try? await Task.sleep(nanoseconds: 1_000_000_000) }
+            }
+            try? context.save()
+        }
+    }
+
+    /// Adds every reel link found in an Instagram export that isn't saved yet.
+    /// Returns (links found, links added).
+    @discardableResult
+    static func addExportedReels(_ urls: [URL], into context: ModelContext) -> (found: Int, added: Int) {
+        let existing = Set(((try? context.fetch(FetchDescriptor<Recipe>())) ?? []).map(\.sourceURL))
+        let new = urls.filter { !existing.contains($0.absoluteString) }
+        // Keep the export's order (newest saves first) when sorting by date.
+        let now = Date.now
+        for (index, url) in new.enumerated() {
+            let recipe = Recipe(sourceURL: url.absoluteString, createdAt: now.addingTimeInterval(-Double(index)))
+            recipe.importedFromExport = true
+            context.insert(recipe)
         }
         try? context.save()
+        return (urls.count, new.count)
+    }
+
+    /// Puts reels whose caption couldn't be fetched back in the queue.
+    static func retryMissingCaptions(in context: ModelContext) async {
+        let needsCaption = RecipeStatus.needsCaption.rawValue
+        let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate<Recipe> { $0.statusRaw == needsCaption })
+        for recipe in (try? context.fetch(descriptor)) ?? [] {
+            recipe.status = .pending
+        }
+        await importSharedReels(into: context)
     }
 
     /// Fetches what's missing and (re-)extracts the recipe from its caption.
@@ -47,8 +82,26 @@ enum RecipeImporter {
             return
         }
 
+        let isRecipe = recipe.isRecipeOverride
+            ?? (recipe.importedFromExport ? RecipeClassifier.isLikelyRecipe(recipe.rawCaption) : true)
+        guard isRecipe else {
+            // Not worth running the full extraction; just give it a readable title.
+            recipe.title = RecipeParser.parse(recipe.rawCaption).title
+            recipe.status = .notRecipe
+            return
+        }
+
         await extract(into: recipe)
         recipe.status = .ready
+    }
+
+    static func setIsRecipe(_ isRecipe: Bool, for recipe: Recipe) async {
+        recipe.isRecipeOverride = isRecipe
+        if isRecipe {
+            await process(recipe)
+        } else {
+            recipe.status = .notRecipe
+        }
     }
 
     private static func extract(into recipe: Recipe) async {

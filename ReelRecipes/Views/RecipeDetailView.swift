@@ -13,6 +13,14 @@ struct RecipeDetailView: View {
         List {
             header
 
+            if recipe.status == .notRecipe {
+                Section {
+                    Text("This reel's caption doesn't look like a recipe, so it's hidden from your cookbook.")
+                        .font(.subheadline)
+                    Button("It's a recipe") { reprocess { await RecipeImporter.setIsRecipe(true, for: recipe) } }
+                }
+            }
+
             if recipe.status == .needsCaption {
                 Section {
                     Text("Instagram didn't share this reel's caption. Open the reel, copy its description, and paste it here.")
@@ -99,15 +107,18 @@ struct RecipeDetailView: View {
                 Menu {
                     Button { isEditing = true } label: { Label("Edit", systemImage: "pencil") }
                     Button {
-                        Task {
-                            isReprocessing = true
-                            await RecipeImporter.process(recipe)
-                            isReprocessing = false
-                        }
+                        reprocess { await RecipeImporter.process(recipe) }
                     } label: {
                         Label("Re-extract from caption", systemImage: "wand.and.stars")
                     }
                     .disabled(isReprocessing)
+                    if recipe.status == .ready {
+                        Button {
+                            reprocess { await RecipeImporter.setIsRecipe(false, for: recipe) }
+                        } label: {
+                            Label("Not a recipe", systemImage: "eye.slash")
+                        }
+                    }
                     if let url = recipe.url {
                         ShareLink(item: url) { Label("Share reel", systemImage: "square.and.arrow.up") }
                     }
@@ -179,6 +190,14 @@ struct RecipeDetailView: View {
                 }
             }
             .padding(.vertical, 4)
+        }
+    }
+
+    private func reprocess(_ work: @escaping () async -> Void) {
+        Task {
+            isReprocessing = true
+            await work()
+            isReprocessing = false
         }
     }
 
