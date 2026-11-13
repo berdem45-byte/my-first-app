@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Barış Erdem</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Barış Erdem — iOS geliştirici. Swift ve SwiftUI ile günlük sorunlara küçük, düzgün uygulamalar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: tek sütun, tarif kartı gibi bölümlenmiş; solda ince etiket sütunu, sağda içerik */
+:root {
+  --bg: #F3F5F2;
+  --surface: #FFFFFF;
+  --ink: #17201C;
+  --muted: #5A6862;
+  --line: #D6DDD8;
+  --accent: #1F6F5C;      /* fesleğen yeşili */
+  --accent-soft: #E1EFE9;
+  --spice: #C2410C;       /* pul biber */
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101614; --surface: #17201D; --ink: #E8EEEA; --muted: #9AAAA3;
+    --line: #2A3631; --accent: #5CC2A6; --accent-soft: #1B302A; --spice: #F08A4B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101614; --surface: #17201D; --ink: #E8EEEA; --muted: #9AAAA3;
+  --line: #2A3631; --accent: #5CC2A6; --accent-soft: #1B302A; --spice: #F08A4B;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 820px;
+  margin: 0 auto;
+  padding-block: 56px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 48px;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+
+/* Hero */
+.hero { display: grid; gap: 18px; }
+.eyebrow {
+  font-family: var(--mono); font-size: 13px; letter-spacing: .06em;
+  color: var(--muted); text-transform: uppercase;
+}
+.eyebrow b { color: var(--accent); font-weight: 500; }
+h1 {
+  font-size: clamp(44px, 9vw, 76px);
+  font-weight: 700; line-height: .98; letter-spacing: -.025em;
+}
+h1 .dot { color: var(--spice); }
+.lede { font-size: 19px; max-width: 58ch; margin: 0; color: var(--ink); }
+.lede span { color: var(--muted); }
+.links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 999px; font-weight: 500; font-size: 15px;
+  text-decoration: none; border: 1px solid var(--line); color: var(--ink); background: var(--surface);
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.btn:hover { border-color: var(--accent); }
+
+/* Bölümler */
+section { display: grid; grid-template-columns: 150px 1fr; gap: 24px; border-top: 1px solid var(--line); padding-top: 24px; }
+section > .label {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  padding-top: 4px;
+}
+section > .content { min-width: 0; display: grid; gap: 18px; }
+@media (max-width: 640px) {
+  section { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* Proje kartı */
+.project {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 24px; display: grid; gap: 16px;
+}
+.project-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.project h3 { font-size: 28px; font-weight: 700; letter-spacing: -.01em; }
+.meta { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.project p { margin: 0; max-width: 62ch; }
+.feats { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.feats li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; }
+.feats li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--spice); margin-top: 9px; }
+
+/* Ayrıştırıcı örneği */
+.parser {
+  font-family: var(--mono); font-size: 13px; line-height: 1.7;
+  background: var(--accent-soft); border-radius: 10px; padding: 14px 16px; overflow-x: auto;
+}
+.parser .k { color: var(--muted); }
+.parser .h { color: var(--accent); font-weight: 500; }
+.parser-cap { font-size: 13px; color: var(--muted); margin: -8px 0 0; }
+
+.pipeline { font-family: var(--mono); font-size: 13px; color: var(--muted); overflow-x: auto; white-space: nowrap; padding-bottom: 2px; }
+.pipeline b { color: var(--ink); font-weight: 500; }
+
+/* Yetenekler */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chips li {
+  font-size: 14px; padding: 5px 12px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--surface);
+}
+.skill-groups { display: grid; gap: 16px; }
+.skill-groups h3 { font-family: var(--body); font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+
+/* Yaklaşım */
+.approach { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.approach h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.approach p { margin: 0; color: var(--muted); font-size: 15px; }
+
+footer { font-family: var(--mono); font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn { transition: border-color .15s ease, transform .15s ease; }
+  .btn:hover { transform: translateY(-1px); }
+}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <header class="hero">
+    <div class="eyebrow"><b>iOS geliştirici</b> · Swift · SwiftUI</div>
+    <h1>Barış Erdem<span class="dot">.</span></h1>
+    <p class="lede">Günlük hayattaki küçük dertlere sade iOS uygulamaları yapıyorum. <span>Telefonda kaybolup giden şeyleri, örneğin kaydedilmiş yemek videolarını, aranabilir ve işe yarar hâle getirmeyi seviyorum.</span></p>
+    <nav class="links" aria-label="Bağlantılar">
+      <a class="btn primary" href="https://github.com/berdem45-byte" target="_blank" rel="noopener">GitHub profili</a>
+      <a class="btn" href="https://github.com/berdem45-byte/my-first-app" target="_blank" rel="noopener">Reel Recipes kaynak kodu</a>
+    </nav>
+  </header>
+
+  <section aria-labelledby="proje">
+    <div class="label" id="proje">Öne çıkan proje</div>
+    <div class="content">
+      <article class="project">
+        <div class="project-head">
+          <h3>Reel Recipes</h3>
+          <span class="meta">iOS 17+ · SwiftUI · SwiftData</span>
+        </div>
+        <p>Instagram'da kaydettiğin tarif videolarını bir yemek kitabına çeviren iOS uygulaması. Videoyu tek dokunuşla paylaşırsın; uygulama açıklamadan tarifi çıkarır ve mutfağa, ülkeye ve türe göre etiketler.</p>
+        <ul class="feats">
+          <li><span><strong>Paylaş menüsünden kayıt.</strong> Share Extension videoyu App Group kuyruğuna atar, uygulama açılınca içe aktarır.</span></li>
+          <li><span><strong>Toplu içe aktarma.</strong> Instagram'ın veri dışa aktarımındaki tüm kayıtlı gönderiler okunur, tarif olmayanlar puanlamayla ayıklanır.</span></li>
+          <li><span><strong>Cihaz üstünde yapay zekâ.</strong> iOS 26'da Apple'ın FoundationModels modeliyle dağınık açıklamalar çözülür; API anahtarı ve maliyet yok.</span></li>
+          <li><span><strong>18 mutfak, otomatik etiketler.</strong> 🇹🇷 Türk, 🇮🇹 İtalyan, 🇯🇵 Japon ve diğerleri; tatlı, vegan, air fryer gibi etiketler.</span></li>
+        </ul>
+        <div class="parser" role="img" aria-label="Ayrıştırıcının tanıdığı malzeme başlıkları, altı dilde">
+          <span class="k">// RecipeParser malzeme bölümünü 6 dilde tanır</span><br>
+          <span class="h">Malzemeler</span> · <span class="h">Ingredients</span> · <span class="h">Ingredientes</span> · <span class="h">Ingrédients</span> · <span class="h">Zutaten</span> · <span class="h">Ingredienti</span>
+        </div>
+        <p class="parser-cap">Başlık yoksa satırları biçimine göre ayırır: miktar içerenler malzemeye, pişirme fiili ya da numara içerenler adımlara gider.</p>
+        <div class="pipeline" aria-label="İçe aktarma akışı"><b>Instagram</b> → ShareExtension → <b>App Group kuyruğu</b> → açıklama + kapak → AI / kural tabanlı ayrıştırıcı → etiketleyici → <b>SwiftData</b></div>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="yetenek">
+    <div class="label" id="yetenek">Yetenekler</div>
+    <div class="content skill-groups">
+      <div>
+        <h3>iOS</h3>
+        <ul class="chips"><li>Swift</li><li>SwiftUI</li><li>SwiftData</li><li>App Extensions</li><li>App Groups</li><li>FoundationModels</li></ul>
+      </div>
+      <div>
+        <h3>Araçlar</h3>
+        <ul class="chips"><li>Xcode</li><li>XcodeGen</li><li>XCTest</li><li>GitHub Actions</li><li>Git</li></ul>
+      </div>
+      <div>
+        <h3>Diller</h3>
+        <ul class="chips"><li>Türkçe</li><li>İngilizce</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="yaklasim">
+    <div class="label" id="yaklasim">Nasıl çalışırım</div>
+    <div class="content approach">
+      <div><h3>Önce cihazda</h3><p>Mümkün olan her şeyi telefonun içinde çözerim. Veri kullanıcıda kalır, sunucu masrafı çıkmaz.</p></div>
+      <div><h3>Yedek planla</h3><p>Yapay zekâ yoksa kural tabanlı ayrıştırıcı devreye girer. Uygulama her cihazda çalışır.</p></div>
+      <div><h3>Testle teslim</h3><p>Her push'ta CI uygulamayı derler ve testleri çalıştırır.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="iletisim">
+    <div class="label" id="iletisim">İletişim</div>
+    <div class="content">
+      <p style="margin:0">Yeni bir uygulama fikri, iş birliği ya da geri bildirim için GitHub üzerinden ulaşabilirsin: <a href="https://github.com/berdem45-byte" target="_blank" rel="noopener">github.com/berdem45-byte</a></p>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Barış Erdem</span>
+    <span>Son güncelleme: Kasım 2026</span>
+  </footer>
+</main>
+</body>
+</html>
